@@ -78,8 +78,8 @@ function Bubble(x,y,size,lifespan){
 			this.lifespan--
 		}
 	}
-	
-	this.show = function(){			
+
+	this.show = function(){
 		ctx.beginPath();
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = 'rgba(255,255,225,.'+Math.round(this.speed*2)+')'
@@ -189,8 +189,6 @@ let world = {
 
 setInterval(() => world.cycle < 360 ? world.cycle++ : world.cycle = 0, 1000/30)
 
-
-
 /*PLAYER*/
 
 let player = {
@@ -204,8 +202,6 @@ function setMouseCoords(e){
 	mouseY = e.clientY	
 }
 document.addEventListener('mousemove', setMouseCoords)
-
-
 
 let player_loc = new Victor(cnvs.width/2,cnvs.height/2),
 	player_vel = new Victor()
@@ -310,7 +306,6 @@ pl_sword.src = 'knight_sword.svg'
 
 /*--------------------*/
 
-
 /*EXPLOSION*/
 
 let explosions = []
@@ -397,7 +392,6 @@ function Bullet(x, y, target, direction){
 		ctx.stroke();
 		ctx.closePath()
 	}
-	
 }
 
 function inspectBullets(){
@@ -509,12 +503,5 @@ function step(){
 	
 	window.requestAnimationFrame(step);
 }
-
-
-
-
-
 </script>
-
-
 </body>
