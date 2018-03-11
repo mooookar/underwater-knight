@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<script src="victor.js"></script>
+<style>
+*{
+	margin: 0;
+	padding: 0;
+}
+html,body{height: 100%;overflow: hidden;}
+
+</style>
+</head>
+<body>
+
+<canvas id="cnvs"></canvas>
+<canvas id="cnvs2"></canvas>
+
+<script>
+
+
+var audio_bg = new Audio('08 - Aquatic Ambiance.mp3');
+audio_bg.loop = true;
+audio_bg.volume = 0.2;
+//audio_bg.play();
+
+var boom;
+var fire;
+
+
+oncontextmenu = () => false;
+let cnvs = document.getElementById('cnvs');
+let ctx = cnvs.getContext('2d')
+
+/*TERRAIN*/
+
+function res(){
+    cnvs.width = document.body.clientWidth;
+    cnvs.height = document.body.clientHeight;
+}
+res();
+
+window.addEventListener('resize' , res)
+
+/*KEYBOARD*/
+
+let keys = {}
+
+document.body.addEventListener("keydown", function (e) {
+    keys[e.keyCode] = true;
+});
+document.body.addEventListener("keyup", function (e) {
+    keys[e.keyCode] = false;
+});
+
+/*-------------*/
+
+var gradient = ctx.createLinearGradient(0,0,0,cnvs.height);
+gradient.addColorStop(0,'rgba(29,184,207,1)');
+gradient.addColorStop(1,'rgba(12,44,131,1)');
+
+var gradient2 = ctx.createLinearGradient(0,0,0,cnvs.height/2);
+gradient2.addColorStop(0,'rgba(0,255,255,.1)');
+gradient2.addColorStop(1,'rgba(0,255,255,0)');
+
+/*BUBBLES*/
+
+let bubbles = [];
+
+function Bubble(x,y,size,lifespan){
+	this.x = x;
+	this.y = y;
+	this.size = size || Math.round(Math.random()*20 + 2);
+	this.speed = this.size / 10;
+	this.lifespan = lifespan || -1;
+
+	this.update = function(){
+		this.y -= this.speed;
+		this.x += Math.random()*2-1;
+		if(this.lifespan > 0){
+			this.lifespan--
+		}
+	}
+
+	this.show = function(){
+		ctx.beginPath();
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = 'rgba(255,255,225,.'+Math.round(this.speed*2)+')'
+		ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+		ctx.stroke();
+		ctx.closePath();
+		ctx.beginPath();
+		ctx.lineWidth = this.size/3;
+		ctx.strokeStyle = 'rgba(255,255,225,.'+Math.round(this.speed*2.5)+')'
+		ctx.arc(this.x, this.y, this.size-this.size/3, Math.PI*1.15, Math.PI*1.35);
+		ctx.stroke();
+		ctx.closePath();
+		ctx.beginPath();
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = 'rgba(255,255,225,.'+Math.round(this.speed)+')'
+		ctx.arc(this.x, this.y, this.size-this.size/5, Math.PI/7, Math.PI/3);
+		ctx.stroke();
+		ctx.closePath();
+	}
+}
+
+function spawnBubble(){
+	if(bubbles.length < 200){
+		bubbles.push(new Bubble(Math.random()*cnvs.width, cnvs.height+50))
+	}
+	setTimeout(spawnBubble, Math.random()*1100)
+}
+function inspectBubbles(){
+	for(i=bubbles.length-1;i>=0;i--){
+		bubbles[i].update();
+		if(bubbles[i].y < -100 || bubbles[i].lifespan == 1){
+			bubbles.splice(i,1)
+		}
+	}
+	if(bubbles.length > 200){
+		bubbles.pop();
+	}
+	setTimeout(inspectBubbles , 1000/60)
+}
+
+setTimeout(inspectBubbles , 1000/60)
+
+setTimeout(spawnBubble, Math.random()*1100)
+
+/*SURFACE LIGHTS*/
+
+let lights = [];
+function Light(x){
+	this.x = x;
+	this.y = 0;
+	this.thickness = Math.round(Math.random()*200+100)
+	this.period = Math.round(Math.random()*360)
+	this.speed = Math.random()*4-2
+
+	this.update = function(){
+		this.period +=.1;
+		if(this.period >=360){
+			this.priod = 0;
+		}
+		this.x += Math.cos(this.period) + this.speed
+		if(this.x > cnvs.width || this.x < -cnvs.height/2){
+			this.speed *= -1
+		}
+		this.thickness  += Math.cos(this.period)
+
+	}
+	this.show = function(){
+		ctx.save();
+		ctx.fillStyle = gradient2;
+		ctx.globalCompositeOperation = 'screen';
+		ctx.beginPath();
+		var p = new Path2D(`M ${this.x} 0
+							L ${cnvs.height/2 + this.x} ${cnvs.height/2}
+							H ${this.thickness + cnvs.height/2 + this.x}
+							L ${this.x + this.thickness} 0
+							Z`)
+		ctx.fill(p);
+		ctx.closePath();
+		ctx.restore();
+	}
+}
+
+lights.push(new Light(Math.random()*cnvs.width-cnvs.width/3))
+lights.push(new Light(Math.random()*cnvs.width-cnvs.width/3))
+lights.push(new Light(Math.random()*cnvs.width-cnvs.width/3))
+lights.push(new Light(Math.random()*cnvs.width-cnvs.width/3))
+lights.push(new Light(Math.random()*cnvs.width-cnvs.width/3))
+lights.push(new Light(Math.random()*cnvs.width-cnvs.width/3))
+lights.push(new Light(Math.random()*cnvs.width-cnvs.width/3))
+lights.push(new Light(Math.random()*cnvs.width-cnvs.width/3))
+
+function inspectLights(){
+	for(i=lights.length-1;i>=0;i--){
+		lights[i].update();
+	}
+	setTimeout(inspectLights , 50)
+}
+
+setTimeout(inspectLights , 50)
+
+/*THE WORLD*/
+
+let world = {
+	gravity : .5,
+	cycle : 0,
+}
+
+setInterval(() => world.cycle < 360 ? world.cycle++ : world.cycle = 0, 1000/30)
+
+/*PLAYER*/
+
+let player = {
+	x : cnvs.width/2,
+	y : cnvs.height /2
+}
+
+let mouseX,mouseY;
+function setMouseCoords(e){
+	mouseX = e.clientX
+	mouseY = e.clientY
+}
+document.addEventListener('mousemove', setMouseCoords)
+
+let player_loc = new Victor(cnvs.width/2,cnvs.height/2),
+	player_vel = new Victor()
+	player_dir = 1;
+	player_phase = 0;
+	player_stamina = 100,
+	bullets_counter = 2,
+	bubbles_counter = 0,
+	player_hit = false;
+
+function player_move(){
+	if (keys[38] || keys[87]) {
+		player_vel.y-=.1
+	}
+	if (keys[40] || keys[83]) {
+		player_vel.y+=.1
+	}
+	if (keys[39] || keys[68]) {
+		player_vel.x+=.1
+	}
+	if (keys[37] || keys[65]) {
+		player_vel.x-=.1
+	}
+
+	player_loc.add(player_vel)
+	player_loc.y += world.gravity
+	player_vel.multiplyScalar(0.99)
+	player_vel.limit(4,.9)
+
+	if(player_loc.y >= cnvs.height-150){
+		player_vel.y--
+	}
+	if(player_loc.y  <= -20){
+		player_vel.y++
+	}
+	if(player_loc.x >= cnvs.width){
+		player_vel.x--
+	}
+	if(player_loc.x <= 0){
+		player_vel.x++
+	}
+
+	if (keys[32] && player_stamina > 5) {
+		if (keys[38] || keys[87]) {
+			player_vel.y-=.7
+		}
+		if (keys[40] || keys[83]) {
+			player_vel.y+=.7
+		}
+		if (keys[39] || keys[68]) {
+			player_vel.x+=.7
+		}
+		if (keys[37] || keys[65]) {
+			player_vel.x-=.7
+		}
+		bubbles.push(new Bubble(player_loc.x+Math.random()*60-30, player_loc.y+Math.random()*60-30, Math.random()*7+2, Math.round(Math.random()*100+100)))
+		player_stamina-=2;
+	}
+
+	function playerBubbles(){
+		bubbles.push(new Bubble(player_loc.x, player_loc.y, Math.random()*3+1, 300))
+	}
+	bubbles_counter++;
+	if(bubbles_counter >= 8){
+		playerBubbles();
+		bubbles_counter = 0;
+	}
+
+	if(mouseX >= player_loc.x){
+		player_dir = 1
+	} else {
+		player_dir = -1
+	}
+
+	if(player_stamina <= 0){
+		player_stamina = 0;
+	}
+	if(player_stamina < 100){
+		player_stamina+= .5;
+	}
+	setTimeout(player_move,1000/60)
+}
+
+setTimeout(player_move,1000/60)
+
+/*PLAYER IMAGE*/
+
+let pl_body = new Image()
+pl_body.src = 'knight_body.svg'
+
+let pl_hair = new Image()
+pl_hair.src = 'knight_hair.svg'
+
+let pl_hand = new Image()
+pl_hand.src = 'knight_hand.svg'
+
+let pl_legs = new Image()
+pl_legs.src = 'knight_legs.svg'
+
+let pl_sword = new Image()
+pl_sword.src = 'knight_sword.svg'
+
+let pl_sword_hit = new Image()
+pl_sword_hit.src = 'knight_sword_hit.svg'
+
+/*ENEMIES*/
+
+var enemies = []
+
+function Enemy(x, y){
+	this.position = new Victor(x, y);
+	this.img = new Image();
+	this.img.src = 'medusa.svg';
+	this.phase = 0;
+	this.bubbled = 0
+	this.bubbled_count = 0
+	
+	this.update =  function (){
+		this.phase++;
+		if(!this.bubbled){
+			this.position.x++
+		}
+		if(this.bubbled){
+			this.bubbled_count++
+			this.position.y--
+		}
+		if(this.bubbled_count > 100){
+			this.bubbled_count = 0;
+			this.bubbled = 0
+		}
+	}
+	
+	this.show = function (){
+		ctx.drawImage(this.img, Math.floor((this.phase % 12)/2) * 40, this.bubbled * 50, 40, 50, this.position.x, this.position.y, 80, 100)
+	}
+}
+
+enemies.push(new Enemy(100,300))
+
+function inspectEnemies(){
+	for(i=0;i<enemies.length;i++){
+		enemies[i].update();
+	}
+	setTimeout(inspectEnemies, 1000/30)
+}
+
+setTimeout(inspectEnemies, 1000/30)
+
+/*EXPLOSION*/
+
+let explosions = []
+
+function Explosion(x, y){
+	this.x = x
+	this.y = y
+	this.size = 50
+	this.opacity = 1
+
+	this.update = function(){
+		this.size *= 1.2
+		this.opacity *= .9
+	}
+
+	this.show = function(){
+		ctx.save()
+		ctx.beginPath()
+		ctx.fillStyle = `rgba(255, 255, 255, ${(110 - this.size)/100})`
+		ctx.arc(this.x,this.y, this.size, 0, Math.PI*2)
+		ctx.fill()
+		ctx.closePath()
+		ctx.restore();
+	}
+}
+
+function inspectExplosions(){
+	for(i=0;i<explosions.length;i++){
+		explosions[i].update();
+		if(explosions[i].size > 100){
+			explosions.splice(i,1)
+		}
+	}
+	setTimeout(inspectExplosions, 1000/30)
+}
+
+setTimeout(inspectExplosions, 1000/30)
+
+/*BULLET*/
+
+let bullets = []
+
+function Bullet(x, y, target, direction){
+	this.position = new Victor(x,y)
+	this.target = target;
+	this.velocity = new Victor(direction*20 , 0)
+	this.acc = new Victor()
+	this.length = 0
+	this.image = new Image()
+	this.image.src = 'bomb.svg'
+
+	this.update = function (){
+		if(world.cycle % 4 == 0){
+			bubbles.push(new Bubble(this.position.x, this.position.y, Math.round(Math.random()*10+5), 100))
+		}
+		this.acc.add(this.target)
+		this.acc.subtract(this.position)
+		this.length = this.acc.length();
+		this.acc.norm()
+		this.acc.add(this.acc)
+		this.velocity.add(this.acc)
+		this.position.add(this.velocity)
+		this.velocity.limit(3,.9)
+
+	}
+
+	this.show = function(){
+		ctx.beginPath()
+		ctx.fillStyle = '#FFFFFF'
+		ctx.drawImage(this.image, this.position.x - 20, this.position.y - 20 , 40, 40)
+		ctx.fill();
+		ctx.closePath()
+		ctx.beginPath()
+		ctx.lineWidth = 5;
+		ctx.strokeStyle = 'red'
+		ctx.moveTo(this.target.x-20, this.target.y-20)
+		ctx.lineTo(this.target.x-12, this.target.y-12)
+		ctx.moveTo(this.target.x+20, this.target.y-20)
+		ctx.lineTo(this.target.x+12, this.target.y-12)
+		ctx.moveTo(this.target.x-20, this.target.y+20)
+		ctx.lineTo(this.target.x-12, this.target.y+12)
+		ctx.moveTo(this.target.x+20, this.target.y+20)
+		ctx.lineTo(this.target.x+12, this.target.y+12)
+		ctx.stroke();
+		ctx.closePath()
+	}
+}
+
+function inspectBullets(){
+	for(i=0;i<bullets.length;i++){
+		bullets[i].update();
+		if(bullets[i].length < 20){
+            boom = new Audio('smw_swimming.wav');
+            boom.play();
+			explosions.push(new Explosion(bullets[i].position.x, bullets[i].position.y))
+			for(j=0;j<enemies.length;j++){
+				if(enemies[j].position.x + 50 < bullets[i].position.x + 30 &&
+					enemies[j].position.x + 50 > bullets[i].position.x - 30  &&
+					enemies[j].position.y + 50 < bullets[i].position.y + 30 &&
+					enemies[j].position.y + 50 > bullets[i].position.y - 30 ){
+					enemies[j].bubbled = 1;
+				}
+			}
+			bubbles.push(new Bubble(bullets[i].position.x, bullets[i].position.y,  Math.round(Math.random()*30+5), Math.round(Math.random()*50+50)))
+			bubbles.push(new Bubble(bullets[i].position.x, bullets[i].position.y,  Math.round(Math.random()*20+5), Math.round(Math.random()*50+50)))
+			bubbles.push(new Bubble(bullets[i].position.x, bullets[i].position.y,  Math.round(Math.random()*10+5), Math.round(Math.random()*50+50)))
+			bullets.splice(i,1)
+		}
+	}
+	setTimeout(inspectBullets, 1000/30)
+}
+
+setTimeout(inspectBullets, 1000/30)
+
+document.addEventListener('mousedown', playerShoot)
+document.addEventListener('mouseup', playerHitCancel)
+
+function playerShoot(e){
+	if (e.which == 1){
+		if (bullets.length <= bullets_counter){
+            fire = new Audio('smw_stomp_koopa_kid.wav');
+			fire.volume = 0.5;
+            fire.play();
+			bullets.push(new Bullet(player_loc.x, player_loc.y+15, new Victor(mouseX,mouseY), player_dir))
+		}
+	} else if (e.which == 3){
+		player_hit = true;
+	}	
+}
+
+function playerHitCancel(){
+	player_hit = false;
+}
+
+/*ENVIRONMENT IMAGES*/
+
+let floor = new Image()
+floor.src = 'floor.svg'
+
+/*------------------------------*/
+
+window.requestAnimationFrame(step);
+function step(){
+
+	ctx.fillStyle = gradient;
+	ctx.fillRect(0,0,cnvs.width,cnvs.height)
+
+	/*
+	hair 31x18
+	legs 25x18
+	swrd 29x40
+	body 28x28
+	hand 18x22
+	*/
+	
+	for(i=0; i<cnvs.width/1200;i++){
+		ctx.drawImage(floor, i*1200-i, cnvs.height-150)
+	}
+	
+
+	ctx.save();
+	ctx.drawImage(pl_hair, (Math.floor((++player_phase % 30) / 5)*31), (player_dir > 0 ? 0 : 18.9), 31,18, (player_dir > 0 ? player_loc.x-55 : player_loc.x), player_loc.y-50 ,62 ,36)
+	ctx.drawImage(pl_legs, (Math.floor((player_phase % 30) / 5)*25), (player_dir > 0 ? 0 : 18), 25, 18, (player_dir > 0 ? player_loc.x-25 : player_loc.x-17),player_loc.y+10 ,50, 36)
+	if(player_hit){8
+		ctx.drawImage(pl_sword_hit, (Math.floor((player_phase % 20) / 5)*43), (player_dir > 0 ? 0 : 60 ), 43, 60, (player_dir > 0 ? player_loc.x+10 : player_loc.x-95),player_loc.y-50 ,86 ,120)
+	} else if(!player_hit){
+		ctx.drawImage(pl_sword, (Math.floor((player_phase % 30) / 5)*29), (player_dir > 0 ? 0 : 40 ), 29, 40, (player_dir > 0 ? player_loc.x+10 : player_loc.x-65),player_loc.y-50 ,58 ,80)
+	}	
+	ctx.drawImage(pl_body, (player_dir > 0 ? 0 : 27), 0, 27, 27, (player_dir > 0 ? player_loc.x-25 : player_loc.x-25),player_loc.y-25, 56 ,56)
+	ctx.drawImage(pl_hand, (Math.floor((player_phase % 30) / 5)*18.1), (player_dir > 0 ? 0 : 22), 18, 22, (player_dir > 0 ? player_loc.x-42 : player_loc.x+12),player_loc.y-10, 36,44)
+	ctx.restore();
+	
+	for(i=0;i<enemies.length;i++){
+		enemies[i].show();
+	}
+
+	for(i=0;i<lights.length;i++){
+		lights[i].show();
+
+	}
+	for(i=0;i<bubbles.length;i++){
+		bubbles[i].show();
+	}
+
+	for(i=0;i<bullets.length;i++){
+		bullets[i].show();
+	}
+
+	for(i=0;i<explosions.length;i++){
+		explosions[i].show();
+	}
+
+	ctx.beginPath()
+	ctx.lineWidth = 20;
+	ctx.lineCap = "round";
+	ctx.strokeStyle = `hsl(${player_stamina}, 100%, 60%)`
+	ctx.fillStyle = `hsl(${player_stamina}, 100%, 60%)`
+	ctx.moveTo(cnvs.width/2 - player_stamina*2, 18)
+	ctx.lineTo(cnvs.width/2 + player_stamina*2, 18)
+	ctx.stroke();	
+	ctx.closePath();
+
+	/*
+	ctx.beginPath();
+	ctx.lineWidth = 3;
+	ctx.strokeStyle = '#FFFFFF';
+	ctx.arc(mouseX, mouseY, 20, 0, Math.PI*2);
+	ctx.moveTo(mouseX, mouseY);
+	ctx.arc(mouseX, mouseY, 2, 0, Math.PI*2);
+	ctx.moveTo(mouseX, mouseY-30);
+	ctx.lineTo(mouseX, mouseY-15);
+	ctx.moveTo(mouseX, mouseY+30);
+	ctx.lineTo(mouseX, mouseY+15);
+	ctx.moveTo(mouseX-30, mouseY);
+	ctx.lineTo(mouseX-15, mouseY);
+	ctx.moveTo(mouseX+30, mouseY);
+	ctx.lineTo(mouseX+15, mouseY);
+	ctx.stroke();
+	ctx.closePath();
+	*/
+	
+	
+		
+	window.requestAnimationFrame(step);
+}
+</script>
+</body>
