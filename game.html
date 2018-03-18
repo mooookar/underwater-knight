@@ -24,7 +24,7 @@ html,body{height: 100%;overflow: hidden;}
 var audio_bg = new Audio('08 - Aquatic Ambiance.mp3');
 audio_bg.loop = true;
 audio_bg.volume = 0.2;
-//audio_bg.play();
+audio_bg.play();
 
 var boom;
 var fire;
@@ -65,6 +65,41 @@ var gradient2 = ctx.createLinearGradient(0,0,0,cnvs.height/2);
 gradient2.addColorStop(0,'rgba(0,255,255,.1)');
 gradient2.addColorStop(1,'rgba(0,255,255,0)');
 
+/*BUBBLE POOL*/
+
+let bubble_pool = []
+
+for(i=1;i<100;i++){
+	let half_i = i/2
+	let cnvs = document.createElement('canvas');
+	cnvs.width = i
+	cnvs.height = i
+	let ctx = cnvs.getContext('2d');
+
+	ctx.beginPath();
+	ctx.lineWidth = 1;
+	ctx.strokeStyle = 'rgba(255,255,225,.5)'
+	ctx.arc(half_i, half_i, half_i, 0, Math.PI*2);
+	ctx.stroke();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.lineWidth = this.size/3;
+	ctx.strokeStyle = 'rgba(255,255,225,.7)'
+	ctx.arc(half_i, half_i, half_i - half_i / 3, Math.PI*1.15, Math.PI*1.35);
+	ctx.stroke();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.lineWidth = 1;
+	ctx.strokeStyle = 'rgba(255,255,225,.3)'
+	ctx.arc(half_i, half_i, half_i - half_i / 5, Math.PI/7, Math.PI/3);
+	ctx.stroke();
+	ctx.closePath();
+
+	bubble_pool[i] = cnvs
+}
+
+console.log(bubble_pool)
+
 /*BUBBLES*/
 
 let bubbles = [];
@@ -85,24 +120,7 @@ function Bubble(x,y,size,lifespan){
 	}
 
 	this.show = function(){
-		ctx.beginPath();
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = 'rgba(255,255,225,.'+Math.round(this.speed*2)+')'
-		ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-		ctx.stroke();
-		ctx.closePath();
-		ctx.beginPath();
-		ctx.lineWidth = this.size/3;
-		ctx.strokeStyle = 'rgba(255,255,225,.'+Math.round(this.speed*2.5)+')'
-		ctx.arc(this.x, this.y, this.size-this.size/3, Math.PI*1.15, Math.PI*1.35);
-		ctx.stroke();
-		ctx.closePath();
-		ctx.beginPath();
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = 'rgba(255,255,225,.'+Math.round(this.speed)+')'
-		ctx.arc(this.x, this.y, this.size-this.size/5, Math.PI/7, Math.PI/3);
-		ctx.stroke();
-		ctx.closePath();
+		ctx.drawImage(bubble_pool[this.size], this.x, this.y)
 	}
 }
 
@@ -119,7 +137,7 @@ function inspectBubbles(){
 			bubbles.splice(i,1)
 		}
 	}
-	if(bubbles.length > 200){
+	if(bubbles.length > 1000){
 		bubbles.pop();
 	}
 	setTimeout(inspectBubbles , 1000/60)
@@ -213,7 +231,7 @@ let player_loc = new Victor(cnvs.width/2,cnvs.height/2),
 	player_dir = 1;
 	player_phase = 0;
 	player_stamina = 100,
-	bullets_counter = 2,
+	bullets_counter = 10,
 	bubbles_counter = 0,
 	player_hit = false;
 
@@ -262,12 +280,12 @@ function player_move(){
 		if (keys[37] || keys[65]) {
 			player_vel.x-=.7
 		}
-		bubbles.push(new Bubble(player_loc.x+Math.random()*60-30, player_loc.y+Math.random()*60-30, Math.random()*7+2, Math.round(Math.random()*100+100)))
+		bubbles.push(new Bubble(player_loc.x+Math.random()*60-30, player_loc.y+Math.random()*60-30, Math.round(Math.random()*7+2), Math.round(Math.random()*100+100)))
 		player_stamina-=2;
 	}
 
 	function playerBubbles(){
-		bubbles.push(new Bubble(player_loc.x, player_loc.y, Math.random()*3+1, 300))
+		bubbles.push(new Bubble(player_loc.x, player_loc.y, Math.round(Math.random()*3+1), 300))
 	}
 	bubbles_counter++;
 	if(bubbles_counter >= 8){
@@ -407,7 +425,7 @@ function Bullet(x, y, target, direction){
 	this.image.src = 'bomb.svg'
 
 	this.update = function (){
-		if(world.cycle % 4 == 0){
+		if(world.cycle % 2 == 0){
 			bubbles.push(new Bubble(this.position.x, this.position.y, Math.round(Math.random()*10+5), 100))
 		}
 		this.acc.add(this.target)
