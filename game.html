@@ -72,26 +72,26 @@ let bubble_pool = []
 for(i=1;i<50;i++){
 	let half_i = i/2
 	let cnvs = document.createElement('canvas');
-	cnvs.width = i
-	cnvs.height = i
+	cnvs.width = i+2
+	cnvs.height = i+2
 	let ctx = cnvs.getContext('2d');
 
 	ctx.beginPath();
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = 'rgba(255,255,225,.5)'
-	ctx.arc(half_i, half_i, half_i, 0, Math.PI*2);
+	ctx.arc(half_i+1, half_i+1, half_i, 0, Math.PI*2);
 	ctx.stroke();
 	ctx.closePath();
 	ctx.beginPath();
 	ctx.lineWidth = this.size/3;
 	ctx.strokeStyle = 'rgba(255,255,225,.7)'
-	ctx.arc(half_i, half_i, half_i - half_i / 3, Math.PI*1.15, Math.PI*1.35);
+	ctx.arc(half_i+1, half_i+1, half_i - half_i / 3, Math.PI*1.15, Math.PI*1.35);
 	ctx.stroke();
 	ctx.closePath();
 	ctx.beginPath();
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = 'rgba(255,255,225,.3)'
-	ctx.arc(half_i, half_i, half_i - half_i / 5, Math.PI/7, Math.PI/3);
+	ctx.arc(half_i+1, half_i+1, half_i - half_i / 5, Math.PI/7, Math.PI/3);
 	ctx.stroke();
 	ctx.closePath();
 
@@ -285,7 +285,7 @@ function player_move(){
 	}
 
 	function playerBubbles(){
-		bubbles.push(new Bubble(player_loc.x, player_loc.y, Math.round(Math.random()*3+1), 300))
+		bubbles.push(new Bubble(player_loc.x, player_loc.y, Math.round(Math.random()*3+3), 300))
 	}
 	bubbles_counter++;
 	if(bubbles_counter >= 8){
