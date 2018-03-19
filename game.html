@@ -16,10 +16,8 @@ html,body{height: 100%;overflow: hidden;}
 <body>
 
 <canvas id="cnvs"></canvas>
-<canvas id="cnvs2"></canvas>
 
 <script>
-
 
 var audio_bg = new Audio('08 - Aquatic Ambiance.mp3');
 audio_bg.loop = true;
@@ -28,7 +26,6 @@ audio_bg.play();
 
 var boom;
 var fire;
-
 
 oncontextmenu = () => false;
 let cnvs = document.getElementById('cnvs');
@@ -594,8 +591,6 @@ function step(){
 	ctx.closePath();
 	*/
 	
-	
-		
 	window.requestAnimationFrame(step);
 }
 </script>
